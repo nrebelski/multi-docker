@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t nrebelski/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run nrebelski/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t nrebelski/multi-cliet ./client
+  - docker build -t nrebelski/multi-nginx ./nginx
+  - docker build -t nrebelski/multi-server ./server
+  - docker build -t nrebelski/multi-worker ./worker
+#Log in to the docker CLI
+echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+#Push images to docker hub
+docker push nrebelski/multi-client
+docker push nrebelski/multi-nginx
+docker push nrebelski/multi-server
+docker push nrebelski/multi-worker
